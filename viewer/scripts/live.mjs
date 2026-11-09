@@ -13,7 +13,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const portIdx = args.indexOf('--port');
 const port = portIdx >= 0 ? Number(args[portIdx + 1]) : 4747;
-const dirArg = args.find((a, i) => !a.startsWith('--') && i !== portIdx + 1);
+const dirArg = args.find((a, i) => !a.startsWith('--') && !(portIdx >= 0 && i === portIdx + 1));
 if (!dirArg || !existsSync(dirArg) || !statSync(dirArg).isDirectory()) {
   console.error('Usage: node scripts/live.mjs <brain-folder> [--port 4747]');
   process.exit(1);
@@ -62,6 +62,16 @@ createServer((req, res) => {
     clients.add(res);
     req.on('close', () => clients.delete(res));
     return;
+  }
+  if (url.pathname === '/status') {
+    // Lets open.mjs find a server that is already showing this brain.
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    return res.end(JSON.stringify({ app: 'second-brain-viewer', root, version, name: brain.name }));
+  }
+  if (url.pathname === '/shutdown' && req.method === 'POST') {
+    res.writeHead(200); res.end('bye');
+    console.log('Stopped.');
+    return setTimeout(() => process.exit(0), 50);
   }
   if (url.pathname === '/brain.local.json') { res.writeHead(404); return res.end(); }
   const rel = normalize(decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname)).replace(/^([/\\])+/, '');

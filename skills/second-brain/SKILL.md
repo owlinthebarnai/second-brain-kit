@@ -1,15 +1,16 @@
 ---
 name: second-brain
-description: Set up or audit a Claude Code "second brain" for any project or area of life - an app, a codebase, a business, research, a book, a job search, a course, a home renovation. Creates a short CLAUDE.md map (150 lines max), a focus file, a decision log, folder rules and grouped skills shaped around the person's own work, so Claude never needs the project re-explained. Use when the user asks to create, start, scaffold or set up a second brain, project memory or CLAUDE.md, or to check/audit/clean up an existing one.
+description: Set up, audit or open the viewer of a Claude Code "second brain" for any project or area of life - an app, a codebase, a business, research, a book, a job search, a course, a home renovation. Creates a short CLAUDE.md map (150 lines max), a focus file, a decision log, folder rules and grouped skills shaped around the person's own work, so Claude never needs the project re-explained. Use when the user asks to create, start, scaffold or set up a second brain, project memory or CLAUDE.md, or to check/audit/clean up an existing one, or to open, show, view or visualize their second brain (the interactive viewer).
 ---
 # Second brain
 
-Two modes. Pick from the request; if unclear, ask.
+Three modes. Pick from the request; if unclear, ask.
 
 | If the user wants to... | Do |
 |---|---|
 | Create a second brain (new or existing folder) | "Create" below |
 | Check, audit or clean up an existing one | "Audit" below |
+| Open, show, view or visualize it; stop the viewer | "View" below |
 
 Before anything else, read principles.md in this folder. Every file you write must follow it.
 
@@ -47,7 +48,7 @@ A second brain has a fixed **core** and a **shape** that comes from the person's
    - how to start a session: "Read projects/now.md and tell me where I stopped"
    - how to close one: "close this session" + raw notes
    - that README-HOW-TO-USE.md has the full loop
-   - that the Second Brain Kit viewer can show the brain as a map
+   - then ask: "Want to see it? I can open the interactive viewer." If yes, do "View".
 
 ## Audit
 
@@ -62,3 +63,15 @@ A second brain has a fixed **core** and a **shape** that comes from the person's
    - secrets or keys in any file (fail, and do not repeat the secret in the report)
    - a "Common pitfalls" section in the format `what broke -> rule`
 3. Propose fixes. Apply them only after the user says which.
+
+## View
+
+The viewer is an interactive map of the brain that updates by itself when files change. It ships prebuilt in this kit: no install, only Node.js (18+).
+
+1. Find the launcher: `viewer/scripts/open.mjs`, two folders up from this skill's base directory (`<skill dir>/../../viewer/scripts/open.mjs`). If it is not there (the skill was copied without the rest of the kit), say so and point to https://github.com/owlinthebarnai/second-brain-kit.
+2. Brain folder: the folder with the brain's CLAUDE.md, usually the current directory. If the current directory has no CLAUDE.md, ask which folder.
+3. Run: `node "<launcher>" "<brain folder>"`. It starts the viewer in the background (or reuses one already showing this brain), opens the browser, and prints the URL. It keeps running after the session ends.
+4. If `node` is not found, tell the user to install Node.js 18+ from nodejs.org, then try again.
+5. Reply in 3 lines: the URL, "it updates by itself as the brain changes", and how to stop it: "say 'stop the viewer'".
+6. To stop: run the launcher with `--stop "<brain folder>"`.
+7. Only if the user asks for it to start at login: explain the per-OS option (Windows scheduled task, macOS launchd, Linux systemd user service) running the same command, and set it up after they say OK.

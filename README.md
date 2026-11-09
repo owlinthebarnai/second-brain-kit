@@ -13,7 +13,7 @@ It works for anything you keep coming back to: an app, a codebase, a small busin
 | Part | What it does |
 |---|---|
 | `skills/second-brain/` | The skill. It interviews you, designs the structure around your work, shows you the plan, and writes the files once you approve. It can also **audit** an existing brain. |
-| `viewer/` | A web page that draws any second brain as a 3D brain. Click a neuron to read the file and follow its links. Includes a health check. |
+| `viewer/` | An interactive map of your brain that updates by itself as files change. Click any file to read it and follow its links. Includes a health check. Prebuilt: say "open my second brain". |
 | `examples/ceramics-shop/` | A complete example brain for a one-person ceramics shop. |
 
 ## Install the skill
@@ -89,21 +89,26 @@ The skill follows these, and writes the ones that apply into your `CLAUDE.md`. T
 
 ## The viewer
 
+Ask Claude, in the folder with your brain:
+
+> Open my second brain
+
+That's it. No install, no setup: the viewer ships prebuilt, and you only need [Node.js](https://nodejs.org) (18+).
+- **Opens by itself:** Claude starts the viewer in the background and opens it in your browser.
+- **Stays up to date:** the map updates by itself about a second after any file changes, like a session close, a new note or an edit. It keeps your place (open file, filters, search, camera) and flashes what changed.
+- **Keeps running:** it stays on after you close Claude. Ask again any time and it reuses the same page.
+- **Private:** it listens on `127.0.0.1` only, so your brain is never visible to other devices.
+- **Stop it:** say "stop the viewer".
+- **Start at login:** ask Claude "keep the viewer running when I log in".
+
+Without Claude, run this from the kit folder:
+
 ```bash
-cd viewer
-npm install
-npm run dev          # opens the example brain
+node viewer/scripts/open.mjs "/path/to/your/brain"     # start + open (default: current folder)
+node viewer/scripts/open.mjs --stop "/path/to/your/brain"
 ```
 
-You can see your own brain in three ways:
-- **Live (recommended):** `npm run live -- "/path/to/your/brain"`, then open **http://localhost:4747**. The page updates by itself about a second after any file changes (a session close, a new note), and keeps your place: the open file, filters, search and camera. Changed neurons flash. The server listens on `127.0.0.1` only, so your brain is never visible to other devices. Use `--port` to change the port.
-- **In the browser:** click **Open folder** (or drag a folder onto the page). Files are read in your browser and never uploaded. `CLAUDE.local.md`, `.env*` and `*.local.*` files are always skipped.
-- **Snapshot:** `npm run scan -- "/path/to/your/brain"` writes `public/brain.local.json` (gitignored), which `npm run dev` loads first.
-
-**Keep it running all the time:** start `npm run live` when you log in.
-- **Windows:** create a scheduled task "At log on" that runs `node viewer/scripts/live.mjs "<brain>"` hidden. For example, use `wscript` with a one-line `.vbs` that calls `WScript.Shell.Run ..., 0`.
-- **macOS:** use a `launchd` agent.
-- **Linux:** use a `systemd --user` service.
+To try it with the example: `node viewer/scripts/open.mjs examples/ceramics-shop`. Or click **Open folder** in the viewer (or drag a folder onto the page) to load any brain straight from your disk.
 
 What you can do:
 - **Navigate:** drag to rotate, scroll to zoom, click a neuron (or a file in the tree) to read it. Links are clickable, and `Esc` goes back. Press `/` to search.
@@ -113,7 +118,7 @@ What you can do:
 
 ![Reading a file in the viewer](docs/viewer-reading.png)
 
-Built with Vite, Three.js and marked. `npm run build` gives you a static site you can host anywhere.
+Built with Vite, Three.js and marked. To change the viewer: `cd viewer && npm install && npm run dev`, then `npm run build` to update `viewer/dist`.
 
 ## License
 
