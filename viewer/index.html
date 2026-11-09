@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Second Brain Viewer</title>
+    <meta name="description" content="See a Claude Code second brain as a glowing neural map. Navigate its rules, skills and files." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='6' fill='%23eafcff'/><circle cx='16' cy='16' r='13' fill='none' stroke='%234cc3ff' stroke-width='2' opacity='.6'/></svg>" />
+  </head>
+  <body>
+    <header id="top">
+      <div class="brand"><span class="dot"></span><span>Second Brain</span><span id="brain-name" class="muted"></span></div>
+      <div id="stats" class="muted mono"></div>
+      <div class="actions">
+        <label class="btn" title="Pick your second-brain folder. Files are read in your browser and never uploaded.">
+          Open folder
+          <input id="folder-input" type="file" webkitdirectory directory multiple hidden />
+        </label>
+        <button id="btn-example" class="btn ghost">Example</button>
+      </div>
+    </header>
+
+    <aside id="nav">
+      <input id="search" type="search" placeholder="Search files and text..." autocomplete="off" />
+      <div id="filters"></div>
+      <div id="tree"></div>
+      <details id="health" open>
+        <summary>Health check</summary>
+        <ul id="checks"></ul>
+      </details>
+    </aside>
+
+    <main id="stage">
+      <canvas id="gl"></canvas>
+      <div id="labels"></div>
+      <div id="tooltip" hidden></div>
+      <div id="hint" class="muted">Drag to rotate · scroll to zoom · click a neuron to read it</div>
+      <div id="drop" hidden>Drop a second-brain folder</div>
+      <div id="loading">Loading brain...</div>
+    </main>
+
+    <section id="reader" hidden>
+      <div class="reader-head">
+        <span id="r-type" class="badge"></span>
+        <button id="r-close" class="icon" title="Close (Esc)">×</button>
+      </div>
+      <h2 id="r-title"></h2>
+      <div id="r-path" class="mono muted"></div>
+      <div id="r-meta" class="mono muted"></div>
+      <div id="r-links"></div>
+      <article id="r-body"></article>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

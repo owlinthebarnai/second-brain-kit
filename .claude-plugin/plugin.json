@@ -1,0 +1,10 @@
+{
+  "name": "second-brain",
+  "version": "0.1.0",
+  "description": "Set up or audit a Claude Code second brain for any project: a short CLAUDE.md map, a focus file, a decision log, folder rules and grouped skills shaped around your work.",
+  "author": { "name": "buildingwithA" },
+  "homepage": "https://github.com/owlinthebarnai/second-brain-kit",
+  "repository": "https://github.com/owlinthebarnai/second-brain-kit",
+  "license": "MIT",
+  "keywords": ["second-brain", "claude-md", "memory", "skills", "productivity"]
+}

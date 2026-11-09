@@ -1,0 +1,12 @@
+{
+  "name": "second-brain-kit",
+  "owner": { "name": "buildingwithA" },
+  "description": "A skill that sets up or audits a Claude Code second brain for any project.",
+  "plugins": [
+    {
+      "name": "second-brain",
+      "source": "./",
+      "description": "Set up or audit a Claude Code second brain for any project."
+    }
+  ]
+}
