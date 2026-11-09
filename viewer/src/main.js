@@ -374,7 +374,7 @@ function select(id) {
   selected = id;
   controls.autoRotate = false;
   flyTarget = pos.get(id).clone();
-  flyDist = byId.get(id).type === 'core' ? 2.6 : 1.7;
+  flyDist = byId.get(id).type === 'core' ? 2.7 : 2.3;
   pulses = pulses.map(() => newPulse());
   openReader(byId.get(id));
   refresh();
