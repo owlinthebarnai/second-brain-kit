@@ -7,6 +7,7 @@
   "scripts": {
     "example": "node scripts/scan.mjs ../examples/ceramics-shop public/example.json",
     "scan": "node scripts/scan.mjs",
+    "live": "node scripts/live.mjs",
     "dev": "npm run example && vite",
     "build": "npm run example && vite build",
     "preview": "vite preview"

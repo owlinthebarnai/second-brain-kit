@@ -119,16 +119,22 @@ function disposeGraph() {
   labels.clear();
 }
 
-function loadBrain(b) {
+function loadBrain(b, keep = false) {
+  const prev = keep && brain ? {
+    selected, hidden: hiddenTypes, query: $('#search').value, scroll: $('#reader').scrollTop,
+    texts: new Map(brain.nodes.map((n) => [n.id, n.text])),
+  } : null;
   disposeGraph();
   brain = b;
   byId = new Map(b.nodes.map((n) => [n.id, n]));
   const layout = layoutBrain(b);
   pos = new Map([...layout].map(([id, p]) => [id, new THREE.Vector3(...p)]));
   selected = null; hovered = null; matchSet = null; hiddenTypes = new Set();
-  $('#search').value = '';
-  $('#reader').hidden = true;
-  document.body.classList.remove('reading');
+  if (!prev) {
+    $('#search').value = '';
+    $('#reader').hidden = true;
+    document.body.classList.remove('reading');
+  }
 
   graph = new THREE.Group();
   scene.add(graph);
@@ -190,10 +196,55 @@ function loadBrain(b) {
   $('#stats').textContent = `${b.nodes.filter((n) => !n.hub).length} files · ${b.links.length} links${core ? ` · CLAUDE.md ${core.lines} lines` : ''}`;
   document.title = `${b.name} · Second Brain Viewer`;
   $('#loading').hidden = true;
+
+  if (prev) {
+    // Live update: keep filters, search, the open file and the camera; flash what changed.
+    hiddenTypes = prev.hidden;
+    for (const c of $('#filters').querySelectorAll('.chip')) c.classList.toggle('off', hiddenTypes.has(c.dataset.type));
+    applySearch(prev.query);
+    flashUntil = new Map();
+    const now = clock.elapsedTime;
+    for (const n of b.nodes) if (!n.hub && prev.texts.get(n.id) !== n.text) flashUntil.set(n.id, now + 2.5);
+    if (prev.selected && byId.has(prev.selected)) {
+      selected = prev.selected;
+      openReader(byId.get(selected));
+      $('#reader').scrollTop = prev.scroll;
+    } else if (prev.selected) {
+      $('#reader').hidden = true;
+      document.body.classList.remove('reading');
+    }
+    pulses = pulses.map(() => newPulse());
+    refresh();
+    return;
+  }
   refresh();
   flyTarget = new THREE.Vector3(0, 0, 0);
   flyDist = 3.35;
   controls.autoRotate = true;
+}
+
+// ---------- Live mode (served by scripts/live.mjs) ----------
+let live = null;
+let flashUntil = new Map();
+function startLive() {
+  if (live || !brain?.live) return;
+  let last = brain.live.version;
+  live = new EventSource('./events');
+  $('#live').hidden = false;
+  $('#live').title = `Updates as files change in ${brain.live.folder}`;
+  live.onopen = () => $('#live').classList.remove('off');
+  live.onerror = () => $('#live').classList.add('off');
+  live.onmessage = async (e) => {
+    const v = Number(e.data);
+    if (v === last) return;
+    last = v;
+    try { loadBrain(await loadJson('./brain.json'), true); } catch { /* next change will retry */ }
+  };
+}
+function stopLive() {
+  live?.close();
+  live = null;
+  $('#live').hidden = true;
 }
 
 function visibleNode(id) {
@@ -474,12 +525,15 @@ $('#checks').addEventListener('click', (ev) => {
   if (c?.files?.length && byId.has(c.files[0])) select(c.files[0]);
 });
 
+function applySearch(value) {
+  const q = (value || '').trim().toLowerCase();
+  matchSet = q ? new Set(brain.nodes.filter((n) => (n.path + ' ' + n.name + ' ' + n.text).toLowerCase().includes(q)).map((n) => n.id)) : null;
+}
 let searchTimer;
 $('#search').addEventListener('input', (ev) => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
-    const q = ev.target.value.trim().toLowerCase();
-    matchSet = q ? new Set(brain.nodes.filter((n) => (n.path + ' ' + n.name + ' ' + n.text).toLowerCase().includes(q)).map((n) => n.id)) : null;
+    applySearch(ev.target.value);
     if (matchSet && selected) deselect();
     refresh();
   }, 120);
@@ -494,9 +548,9 @@ async function loadJson(url) {
 
 async function boot() {
   const want = new URLSearchParams(location.search).get('brain');
-  const tries = want === 'example' ? ['./example.json'] : want ? [want] : ['./brain.local.json', './example.json'];
+  const tries = want === 'example' ? ['./example.json'] : want ? [want] : ['./brain.json', './brain.local.json', './example.json'];
   for (const url of tries) {
-    try { loadBrain(await loadJson(url)); return; } catch { /* try next */ }
+    try { loadBrain(await loadJson(url)); startLive(); return; } catch { /* try next */ }
   }
   $('#loading').textContent = 'No brain found. Use "Open folder" to load yours.';
 }
@@ -504,6 +558,7 @@ async function boot() {
 function fromFiles(list) {
   const b = buildBrain(list);
   if (!b.nodes.length) { alert('No markdown files found in that folder.'); return; }
+  stopLive();
   loadBrain(b);
 }
 
@@ -518,7 +573,7 @@ $('#folder-input').addEventListener('change', async (ev) => {
   fromFiles(list);
 });
 $('#btn-example').addEventListener('click', async () => {
-  try { loadBrain(await loadJson('./example.json')); } catch { alert('Example not found.'); }
+  try { stopLive(); loadBrain(await loadJson('./example.json')); } catch { alert('Example not found.'); }
 });
 
 async function readEntry(entry, path, out) {
@@ -599,6 +654,11 @@ function frame() {
     p.needsUpdate = true;
     c.needsUpdate = true;
 
+    for (const [id, until] of flashUntil) {
+      const s = spriteById.get(id);
+      if (!s || t > until) { flashUntil.delete(id); if (s) s.scale.setScalar(s.userData.size * (id === selected ? 1.6 : 1)); continue; }
+      s.scale.setScalar(s.userData.size * (1 + 1.2 * Math.abs(Math.sin((until - t) * 4)) * ((until - t) / 2.5)));
+    }
     // Gentle breathing of the core.
     const core = spriteById.get('CLAUDE.md');
     if (core && selected !== 'CLAUDE.md') core.scale.setScalar(core.userData.size * (1 + Math.sin(t * 1.6) * 0.06));

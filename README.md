@@ -95,9 +95,15 @@ npm install
 npm run dev          # opens the example brain
 ```
 
-You can see your own brain in two ways:
+You can see your own brain in three ways:
+- **Live (recommended):** `npm run live -- "/path/to/your/brain"`, then open **http://localhost:4747**. The page updates by itself about a second after any file changes (a session close, a new note), and keeps your place: the open file, filters, search and camera. Changed neurons flash. The server listens on `127.0.0.1` only, so your brain is never visible to other devices. Use `--port` to change the port.
 - **In the browser:** click **Open folder** (or drag a folder onto the page). Files are read in your browser and never uploaded. `CLAUDE.local.md`, `.env*` and `*.local.*` files are always skipped.
-- **From the command line:** `npm run scan -- "/path/to/your/brain"` writes `public/brain.local.json`, which the viewer loads first. This file is gitignored.
+- **Snapshot:** `npm run scan -- "/path/to/your/brain"` writes `public/brain.local.json` (gitignored), which `npm run dev` loads first.
+
+**Keep it running all the time:** start `npm run live` when you log in.
+- **Windows:** create a scheduled task "At log on" that runs `node viewer/scripts/live.mjs "<brain>"` hidden. For example, use `wscript` with a one-line `.vbs` that calls `WScript.Shell.Run ..., 0`.
+- **macOS:** use a `launchd` agent.
+- **Linux:** use a `systemd --user` service.
 
 What you can do:
 - **Navigate:** drag to rotate, scroll to zoom, click a neuron (or a file in the tree) to read it. Links are clickable, and `Esc` goes back. Press `/` to search.
